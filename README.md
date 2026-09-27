@@ -2,10 +2,6 @@
 
 A console inventory and point-of-sale system for a small store, written in C# (.NET 10).
 
-**CPE261 Object Oriented Programming 1**<br>
-Engr. Julian M. Semblante<br>
-2024
-
 ## Features
 
 - View, add, update and remove products
@@ -34,3 +30,9 @@ On first run, three sample products are added.
 | `Product.cs` | Product model |
 | `Inventory.cs` | Product list, selling, and saving/loading `inventory.txt` |
 | `BarcodeGenerator.cs` | EAN-13 barcode generation and display |
+
+<div align="center">
+
+**CPE261 Object Oriented Programming 1 · 2024** · Instructor: Engr. Julian M. Semblante
+
+</div>
