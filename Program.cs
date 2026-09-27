@@ -1,47 +1,27 @@
-﻿using System;
+using System;
+using System.Linq;
 using PalengKart;
 
 namespace PalengKartApp
 {
     class Program
     {
-        static decimal ReadDecimal(string prompt, decimal min)
-        {
-            while (true)
-            {
-                Console.Write(prompt);
-                if (decimal.TryParse(Console.ReadLine(), out decimal value) && value >= min)
-                    return value;
-                Console.WriteLine($"Please enter a valid number (at least {min}).");
-            }
-        }
-
-        static int ReadInt(string prompt, int min)
-        {
-            while (true)
-            {
-                Console.Write(prompt);
-                if (int.TryParse(Console.ReadLine(), out int value) && value >= min)
-                    return value;
-                Console.WriteLine($"Please enter a valid whole number (at least {min}).");
-            }
-        }
+        static Inventory inventory = new Inventory();
 
         static void Main()
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            Inventory inv = new Inventory();
-            inv.LoadInventory();
-            
-            if (inv.Products.Count == 0)
+            if (inventory.Products.Count == 0)
             {
                 Console.WriteLine("Adding sample products...");
-                inv.AddProduct(new Product("8901234567890", "Rice 5kg", "Groceries", 250, 50, 10));
-                inv.AddProduct(new Product("8901234567891", "Cooking Oil", "Groceries", 120, 30, 5));
-                inv.AddProduct(new Product("8901234567892", "Sugar 1kg", "Groceries", 75, 40, 8));
+                AddSample("Rice", Category.PastaRiceCereals, 55, 100, "kg", 20);
+                AddSample("Cooking Oil", Category.SaucesCondiments, 120, 30, "bottle", 5);
+                AddSample("Eggs", Category.Dairy, 9, 60, "pc", 12);
+                AddSample("Tomato", Category.Vegetables, 80, 15, "kg", 5);
+                AddSample("Banana", Category.Fruit, 70, 4, "kg", 5);
             }
-            
+
             bool run = true;
             while (run)
             {
@@ -54,188 +34,200 @@ namespace PalengKartApp
                 Console.WriteLine("6. Low Stock Alerts");
                 Console.WriteLine("7. Exit");
                 Console.Write("Choice: ");
-                
-                string? c = Console.ReadLine();
-                
-                if (c == "1")
-                {
-                    inv.DisplayInventory();
-                }
-                else if (c == "2")
-                {
-                    string b = BarcodeGenerator.GenerateBarcodeNumber(inv.BarcodeExists);
-                    Console.WriteLine("\nGenerated Barcode: " + b);
-                    BarcodeGenerator.DisplayBarcodeAscii(b);
-                    Console.Write("Product Name: ");
-                    string? n = Console.ReadLine()?.Trim();
-                    if (string.IsNullOrEmpty(n)) n = "Unknown";
-                    Console.Write("Category (press Enter for General): ");
-                    string? cat = Console.ReadLine()?.Trim();
-                    if (string.IsNullOrEmpty(cat)) cat = "General";
-                    decimal p = ReadDecimal("Price: ₱", 0);
-                    int s = ReadInt("Stock: ", 0);
-                    int min = ReadInt("Minimum Stock (low stock alert level): ", 0);
-                    inv.AddProduct(new Product(b, n, cat, p, s, min));
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("✓ Product added successfully!");
-                    Console.ResetColor();
-                }
-                else if (c == "3")
-                {
-                    Console.Write("\nScan/Enter Barcode: ");
-                    string? b = Console.ReadLine();
-                    if (string.IsNullOrEmpty(b))
-                    {
-                        Console.WriteLine("Invalid barcode!");
-                    }
-                    else
-                    {
-                        var prod = inv.GetProduct(b);
-                        if (prod != null)
-                        {
-                            Console.WriteLine($"Product: {prod.Name}");
-                            Console.WriteLine($"Price: ₱{prod.Price}");
-                            Console.WriteLine($"Available Stock: {prod.Stock}");
-                            int q = ReadInt("Quantity: ", 1);
-                            if (inv.SellProduct(b, q, out decimal total))
-                            {
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine($"✓ Sold! Total: ₱{total}");
-                                Console.ResetColor();
-                            }
-                            else
-                            {
-                                Console.ForegroundColor = ConsoleColor.Red;
-                                Console.WriteLine("✗ Insufficient stock!");
-                                Console.ResetColor();
-                            }
-                        }
-                        else
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("✗ Product not found!");
-                            Console.ResetColor();
-                        }
-                    }
-                }
-                else if (c == "4")
-                {
-                    Console.Write("\nEnter Barcode: ");
-                    string? b = Console.ReadLine();
-                    if (string.IsNullOrEmpty(b))
-                    {
-                        Console.WriteLine("Invalid barcode!");
-                    }
-                    else
-                    {
-                        var prod = inv.GetProduct(b);
-                        if (prod != null)
-                        {
-                            Console.WriteLine($"Current: {prod.Name} - ₱{prod.Price} - Stock: {prod.Stock}");
-                            decimal newPrice = prod.Price;
-                            int newStock = prod.Stock;
 
-                            while (true)
-                            {
-                                Console.Write("New Price (press Enter to skip): ");
-                                string? priceInput = Console.ReadLine();
-                                if (string.IsNullOrWhiteSpace(priceInput)) break;
-                                if (decimal.TryParse(priceInput, out decimal parsed) && parsed >= 0) { newPrice = parsed; break; }
-                                Console.WriteLine("Please enter a valid number (at least 0).");
-                            }
-                            while (true)
-                            {
-                                Console.Write("New Stock (press Enter to skip): ");
-                                string? stockInput = Console.ReadLine();
-                                if (string.IsNullOrWhiteSpace(stockInput)) break;
-                                if (int.TryParse(stockInput, out int parsed) && parsed >= 0) { newStock = parsed; break; }
-                                Console.WriteLine("Please enter a valid whole number (at least 0).");
-                            }
-                            
-                            inv.UpdateProduct(b, newPrice, newStock);
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine("✓ Product updated!");
-                            Console.ResetColor();
-                        }
-                        else
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("✗ Product not found!");
-                            Console.ResetColor();
-                        }
-                    }
-                }
-                else if (c == "5")
+                switch (Console.ReadLine())
                 {
-                    Console.Write("\nEnter Barcode: ");
-                    string? b = Console.ReadLine();
-                    if (string.IsNullOrEmpty(b))
-                    {
-                        Console.WriteLine("Invalid barcode!");
-                    }
-                    else
-                    {
-                        var prod = inv.GetProduct(b);
-                        if (prod != null)
-                        {
-                            Console.WriteLine($"Remove {prod.Name}? (Y/N): ");
-                            if (Console.ReadLine()?.ToUpper() == "Y")
-                            {
-                                inv.RemoveProduct(b);
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("✓ Product removed!");
-                                Console.ResetColor();
-                            }
-                        }
-                        else
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("✗ Product not found!");
-                            Console.ResetColor();
-                        }
-                    }
-                }
-                else if (c == "6")
-                {
-                    var low = inv.GetLowStock();
-                    if (low.Count == 0)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("\n✓ All products have sufficient stock!");
-                        Console.ResetColor();
-                    }
-                    else
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("\n⚠️ LOW STOCK ALERTS:");
-                        Console.ResetColor();
-                        foreach (var p in low)
-                        {
-                            Console.WriteLine($"  • {p.Name} - Stock: {p.Stock} (Min: {p.MinStock})");
-                        }
-                    }
-                }
-                else if (c == "7")
-                {
-                    inv.SaveInventory();
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("\n✓ Data saved. Thank you for using PalengKart!");
-                    Console.ResetColor();
-                    run = false;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Invalid option! Please try again.");
-                    Console.ResetColor();
-                }
-                
-                if (run)
-                {
-                    Console.WriteLine("\nPress Enter to continue...");
-                    Console.ReadLine();
+                    case "1": inventory.DisplayInventory(); break;
+                    case "2": AddProduct(); break;
+                    case "3": SellProduct(); break;
+                    case "4": UpdateProduct(); break;
+                    case "5": RemoveProduct(); break;
+                    case "6": ShowLowStock(); break;
+                    case "7":
+                        inventory.SaveInventory();
+                        PrintSuccess("\n✓ Data saved. Thank you for using PalengKart!");
+                        run = false;
+                        break;
+                    default:
+                        PrintError("Invalid option! Please try again.");
+                        break;
                 }
             }
+        }
+
+        static void AddProduct()
+        {
+            string id = BarcodeGenerator.GenerateBarcodeNumber(inventory.ProductExists);
+            Console.WriteLine("\nGenerated Product ID (barcode): " + id);
+            BarcodeGenerator.DisplayBarcodeAscii(id);
+
+            Console.Write("Product Name: ");
+            string? name = Console.ReadLine()?.Trim();
+            if (string.IsNullOrEmpty(name)) name = "Unknown";
+
+            Category category = ReadCategory();
+            decimal price = ReadDecimal("Price: ₱", 0);
+            string unit = ReadUnit();
+            int quantity = ReadInt("Quantity: ", 0);
+            int minStock = ReadInt("Minimum Stock (low stock alert level): ", 0);
+
+            inventory.AddProduct(new Product(id, name, category, price, quantity, unit, minStock));
+            PrintSuccess("✓ Product added successfully!");
+        }
+
+        static void SellProduct()
+        {
+            var prod = FindProduct("\nScan/Enter Product ID: ");
+            if (prod == null) return;
+
+            Console.WriteLine($"{prod.Name} - ₱{prod.Price:0.00} / {prod.Unit} (available: {prod.Quantity})");
+            int qty = ReadInt("Quantity: ", 1);
+            if (inventory.ReduceStock(prod.ProductID, qty))
+                PrintSuccess($"✓ Sold! Total: ₱{prod.Price * qty:0.00}");
+            else
+                PrintError("✗ Insufficient stock!");
+        }
+
+        static void UpdateProduct()
+        {
+            var prod = FindProduct("\nEnter Product ID: ");
+            if (prod == null) return;
+
+            Console.Write("Current: ");
+            prod.DisplayProduct();
+
+            decimal newPrice = prod.Price;
+            int newQuantity = prod.Quantity;
+
+            while (true)
+            {
+                Console.Write("New Price (press Enter to skip): ");
+                string? input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input)) break;
+                if (decimal.TryParse(input, out decimal parsed) && parsed >= 0) { newPrice = parsed; break; }
+                Console.WriteLine("Please enter a valid number (at least 0).");
+            }
+            while (true)
+            {
+                Console.Write("New Quantity (press Enter to skip): ");
+                string? input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input)) break;
+                if (int.TryParse(input, out int parsed) && parsed >= 0) { newQuantity = parsed; break; }
+                Console.WriteLine("Please enter a valid whole number (at least 0).");
+            }
+
+            inventory.UpdateProduct(prod.ProductID, newPrice, newQuantity);
+            PrintSuccess("✓ Product updated!");
+        }
+
+        static void RemoveProduct()
+        {
+            var prod = FindProduct("\nEnter Product ID: ");
+            if (prod == null) return;
+
+            Console.Write($"Remove {prod.Name}? (Y/N): ");
+            if (Console.ReadLine()?.Trim().ToUpper() == "Y")
+            {
+                inventory.RemoveProduct(prod.ProductID);
+                PrintSuccess("✓ Product removed!");
+            }
+        }
+
+        static void ShowLowStock()
+        {
+            var low = inventory.GetLowStock();
+            if (low.Count == 0)
+            {
+                PrintSuccess("\n✓ All products have sufficient stock!");
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n⚠️ LOW STOCK ALERTS:");
+            Console.ResetColor();
+            foreach (var p in low)
+            {
+                Console.WriteLine($"  • {p.Name} - Qty: {p.Quantity} {p.Unit} (Min: {p.MinStock})");
+            }
+        }
+
+        // ===== HELPERS =====
+
+        static void AddSample(string name, Category category, decimal price, int quantity, string unit, int minStock)
+        {
+            string id = BarcodeGenerator.GenerateBarcodeNumber(inventory.ProductExists);
+            inventory.AddProduct(new Product(id, name, category, price, quantity, unit, minStock));
+        }
+
+        static Product? FindProduct(string prompt)
+        {
+            Console.Write(prompt);
+            string? id = Console.ReadLine()?.Trim();
+            var prod = string.IsNullOrEmpty(id) ? null : inventory.GetProduct(id);
+            if (prod == null) PrintError("✗ Product not found!");
+            return prod;
+        }
+
+        static Category ReadCategory()
+        {
+            var categories = Enum.GetValues<Category>();
+            Console.WriteLine("Categories:");
+            for (int i = 0; i < categories.Length; i++)
+            {
+                Console.WriteLine($"  {i + 1}. {categories[i]}");
+            }
+            int choice = ReadInt("Category number: ", 1, categories.Length);
+            return categories[choice - 1];
+        }
+
+        static string ReadUnit()
+        {
+            while (true)
+            {
+                Console.Write($"Unit ({string.Join(", ", Product.ValidUnits)}): ");
+                string unit = Console.ReadLine()?.Trim() ?? "";
+                if (Product.IsValidUnit(unit))
+                    return Product.ValidUnits.First(u => u.Equals(unit, StringComparison.OrdinalIgnoreCase));
+                Console.WriteLine("Please enter one of the listed units.");
+            }
+        }
+
+        static decimal ReadDecimal(string prompt, decimal min)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                if (decimal.TryParse(Console.ReadLine(), out decimal value) && value >= min)
+                    return value;
+                Console.WriteLine($"Please enter a valid number (at least {min}).");
+            }
+        }
+
+        static int ReadInt(string prompt, int min, int max = int.MaxValue)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                if (int.TryParse(Console.ReadLine(), out int value) && value >= min && value <= max)
+                    return value;
+                Console.WriteLine(max == int.MaxValue
+                    ? $"Please enter a valid whole number (at least {min})."
+                    : $"Please enter a whole number from {min} to {max}.");
+            }
+        }
+
+        static void PrintSuccess(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
+        static void PrintError(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }

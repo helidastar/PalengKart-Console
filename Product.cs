@@ -1,24 +1,41 @@
-﻿namespace PalengKart
+using System;
+using System.Linq;
+
+namespace PalengKart
 {
     public class Product
     {
-        public string Barcode { get; set; } = "";
+        public static readonly string[] ValidUnits = { "pc", "kg", "g", "L", "mL", "pack", "bottle", "can", "sack", "dozen" };
+
+        public string ProductID { get; set; } = "";   // EAN-13 barcode
         public string Name { get; set; } = "";
-        public string Category { get; set; } = "";
+        public Category Category { get; set; }
         public decimal Price { get; set; }
-        public int Stock { get; set; }
+        public int Quantity { get; set; }
+        public string Unit { get; set; } = "pc";
         public int MinStock { get; set; }
-        
-        public Product(string barcode, string name, string category, decimal price, int stock, int minStock)
+
+        public Product(string productID, string name, Category category, decimal price, int quantity, string unit, int minStock)
         {
-            Barcode = barcode;
+            ProductID = productID;
             Name = name;
             Category = category;
             Price = price;
-            Stock = stock;
+            Quantity = quantity;
+            Unit = unit;
             MinStock = minStock;
         }
-        
-        public bool IsLowStock => Stock <= MinStock;
+
+        public bool IsLowStock => Quantity <= MinStock;
+
+        public static bool IsValidUnit(string unit)
+        {
+            return ValidUnits.Contains(unit, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public void DisplayProduct()
+        {
+            Console.WriteLine($"{ProductID} | {Name,-20} | {Category,-20} | ₱{Price,8:0.00} / {Unit,-6} | Qty: {Quantity}");
+        }
     }
 }
