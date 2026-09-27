@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using PalengKart;
 
@@ -7,6 +8,9 @@ namespace PalengKartApp
     class Program
     {
         static Inventory inventory = new Inventory();
+        static SalesReport salesReport = new SalesReport();
+        static Admin admin = new Admin("admin", "admin@palengkart.com");
+        static List<Customer> customers = new List<Customer>();
 
         static void Main()
         {
@@ -26,24 +30,25 @@ namespace PalengKartApp
             while (run)
             {
                 Console.WriteLine("\n=== PALENGKART STORE SYSTEM ===");
-                Console.WriteLine("1. View Products");
-                Console.WriteLine("2. Add Product");
-                Console.WriteLine("3. Sell Product");
-                Console.WriteLine("4. Update Product");
-                Console.WriteLine("5. Remove Product");
-                Console.WriteLine("6. Low Stock Alerts");
-                Console.WriteLine("7. Exit");
+                Console.WriteLine("1. Login as Admin");
+                Console.WriteLine("2. Login as Customer");
+                Console.WriteLine("3. Exit");
                 Console.Write("Choice: ");
 
                 switch (Console.ReadLine())
                 {
-                    case "1": inventory.DisplayInventory(); break;
-                    case "2": AddProduct(); break;
-                    case "3": SellProduct(); break;
-                    case "4": UpdateProduct(); break;
-                    case "5": RemoveProduct(); break;
-                    case "6": ShowLowStock(); break;
-                    case "7":
+                    case "1":
+                        Console.Write("Admin username: ");
+                        if (Console.ReadLine()?.Trim() == admin.Username)
+                            HandleAdmin(admin);
+                        else
+                            PrintError("✗ Unknown admin username!");
+                        break;
+                    case "2":
+                        var customer = LoginCustomer();
+                        if (customer != null) HandleCustomer(customer);
+                        break;
+                    case "3":
                         inventory.SaveInventory();
                         PrintSuccess("\n✓ Data saved. Thank you for using PalengKart!");
                         run = false;
@@ -53,6 +58,44 @@ namespace PalengKartApp
                         break;
                 }
             }
+        }
+
+        // ===== ADMIN =====
+
+        static void HandleAdmin(Admin user)
+        {
+            Console.WriteLine();
+            user.DisplayInfo();
+
+            while (true)
+            {
+                Console.WriteLine("\n--- ADMIN MENU ---");
+                Console.WriteLine("1. View Inventory");
+                Console.WriteLine("2. Add Product");
+                Console.WriteLine("3. Update Product");
+                Console.WriteLine("4. Remove Product");
+                Console.WriteLine("5. Low Stock Alerts");
+                Console.WriteLine("6. Sales Report");
+                Console.WriteLine("7. Logout");
+                Console.Write("Choice: ");
+
+                switch (Console.ReadLine())
+                {
+                    case "1": DisplayInventory(); break;
+                    case "2": AddProduct(); break;
+                    case "3": UpdateProduct(); break;
+                    case "4": RemoveProduct(); break;
+                    case "5": ShowLowStock(); break;
+                    case "6": salesReport.DisplaySalesReport(); break;
+                    case "7": return;
+                    default: PrintError("Invalid option! Please try again."); break;
+                }
+            }
+        }
+
+        static void DisplayInventory()
+        {
+            inventory.DisplayInventory();
         }
 
         static void AddProduct()
@@ -73,19 +116,6 @@ namespace PalengKartApp
 
             inventory.AddProduct(new Product(id, name, category, price, quantity, unit, minStock));
             PrintSuccess("✓ Product added successfully!");
-        }
-
-        static void SellProduct()
-        {
-            var prod = FindProduct("\nScan/Enter Product ID: ");
-            if (prod == null) return;
-
-            Console.WriteLine($"{prod.Name} - ₱{prod.Price:0.00} / {prod.Unit} (available: {prod.Quantity})");
-            int qty = ReadInt("Quantity: ", 1);
-            if (inventory.ReduceStock(prod.ProductID, qty))
-                PrintSuccess($"✓ Sold! Total: ₱{prod.Price * qty:0.00}");
-            else
-                PrintError("✗ Insufficient stock!");
         }
 
         static void UpdateProduct()
@@ -149,6 +179,126 @@ namespace PalengKartApp
             {
                 Console.WriteLine($"  • {p.Name} - Qty: {p.Quantity} {p.Unit} (Min: {p.MinStock})");
             }
+        }
+
+        // ===== CUSTOMER =====
+
+        static Customer? LoginCustomer()
+        {
+            Console.Write("\nUsername: ");
+            string? username = Console.ReadLine()?.Trim();
+            if (string.IsNullOrEmpty(username))
+            {
+                PrintError("✗ Username is required!");
+                return null;
+            }
+
+            var existing = customers.FirstOrDefault(c => c.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                Console.Write("Password: ");
+                if (Console.ReadLine() == existing.Password) return existing;
+                PrintError("✗ Wrong password!");
+                return null;
+            }
+
+            Console.WriteLine("New customer! Let's create your account.");
+            Console.Write("Email: ");
+            string email = Console.ReadLine()?.Trim() ?? "";
+            string password;
+            while (true)
+            {
+                Console.Write("Password: ");
+                password = Console.ReadLine() ?? "";
+                if (password.Length > 0) break;
+                Console.WriteLine("Password cannot be empty.");
+            }
+
+            var customer = new Customer(username, email, password);
+            customers.Add(customer);
+            PrintSuccess("✓ Account created!");
+            return customer;
+        }
+
+        static void HandleCustomer(Customer user)
+        {
+            Console.WriteLine();
+            user.DisplayInfo();
+
+            while (true)
+            {
+                Console.WriteLine("\n--- CUSTOMER MENU ---");
+                Console.WriteLine("1. View Products");
+                Console.WriteLine("2. Add to Cart");
+                Console.WriteLine("3. View Cart");
+                Console.WriteLine("4. Checkout");
+                Console.WriteLine("5. Logout");
+                Console.Write("Choice: ");
+
+                switch (Console.ReadLine())
+                {
+                    case "1": DisplayInventory(); break;
+                    case "2": AddToCart(user); break;
+                    case "3": user.Cart.DisplayCart(); break;
+                    case "4": Checkout(user); break;
+                    case "5": return;
+                    default: PrintError("Invalid option! Please try again."); break;
+                }
+            }
+        }
+
+        static void AddToCart(Customer user)
+        {
+            var prod = FindProduct("\nScan/Enter Product ID: ");
+            if (prod == null) return;
+
+            int available = prod.Quantity - user.Cart.QuantityOf(prod.ProductID);
+            Console.WriteLine($"{prod.Name} - ₱{prod.Price:0.00} / {prod.Unit} (available: {available})");
+            if (available <= 0)
+            {
+                PrintError("✗ Out of stock!");
+                return;
+            }
+
+            int qty = ReadInt("Quantity: ", 1);
+            if (qty > available)
+            {
+                PrintError("✗ Insufficient stock!");
+                return;
+            }
+
+            user.Cart.AddToCart(prod, qty);
+            PrintSuccess($"✓ Added {qty} {prod.Unit} of {prod.Name} to cart.");
+        }
+
+        static void Checkout(Customer user)
+        {
+            if (user.Cart.Products.Count == 0)
+            {
+                PrintError("✗ Your cart is empty!");
+                return;
+            }
+
+            // Check all items first, so a checkout never goes through half-way
+            foreach (var item in user.Cart.Products)
+            {
+                var stock = inventory.GetProduct(item.ProductID);
+                if (stock == null || stock.Quantity < item.Quantity)
+                {
+                    PrintError($"✗ Not enough stock for {item.Name}. Please update your cart.");
+                    return;
+                }
+            }
+
+            user.Cart.DisplayCart();
+            foreach (var item in user.Cart.Products)
+            {
+                inventory.ReduceStock(item.ProductID, item.Quantity);
+                salesReport.RecordSale(user.Username, item.Name, item.Quantity, item.Price * item.Quantity);
+            }
+
+            PrintSuccess($"✓ Checkout complete! Total paid: ₱{user.Cart.CalculateTotal():0.00}");
+            user.Cart.Clear();
         }
 
         // ===== HELPERS =====
