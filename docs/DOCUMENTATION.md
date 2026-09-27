@@ -305,11 +305,20 @@ Customer accounts and sales are kept in memory only (see [Known Limitations](#10
 
 ## 8. Setup and Running
 
-### Requirements
+### Download (no .NET needed)
+
+1. Download [PalengKart.exe](https://github.com/helidastar/PalengKart-Console/releases/latest/download/PalengKart.exe) from the [Releases](https://github.com/helidastar/PalengKart-Console/releases) page (Windows 10/11, 64-bit)
+2. Put it in its own folder; it saves `inventory.txt` next to itself
+3. Double-click it to run
+4. If Windows shows "Windows protected your PC", click **More info** → **Run anyway** (the file is not code-signed)
+
+### Run from source
+
+#### Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 
-### Run
+#### Run
 
 ```bash
 git clone https://github.com/helidastar/PalengKart-Console.git
