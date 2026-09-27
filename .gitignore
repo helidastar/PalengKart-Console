@@ -1,0 +1,11 @@
+# .NET build output
+bin/
+obj/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+
+# Runtime data (created by the app)
+inventory.txt
