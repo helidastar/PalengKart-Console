@@ -8,8 +8,14 @@ namespace PalengKart
 {
     public class Inventory
     {
-        public List<Product> Products = new List<Product>();
+        public List<Product> Products { get; set; }
         string filePath = "inventory.txt";
+
+        public Inventory()
+        {
+            Products = new List<Product>();
+            LoadInventory();
+        }
 
         public void AddProduct(Product p)
         {
@@ -17,19 +23,19 @@ namespace PalengKart
             SaveInventory();
         }
 
-        public void RemoveProduct(string barcode)
+        public void RemoveProduct(string productID)
         {
-            Products.RemoveAll(p => p.Barcode == barcode);
+            Products.RemoveAll(p => p.ProductID == productID);
             SaveInventory();
         }
 
-        public void UpdateProduct(string barcode, decimal price, int stock)
+        public void UpdateProduct(string productID, decimal price, int quantity)
         {
-            var p = GetProduct(barcode);
+            var p = GetProduct(productID);
             if (p != null)
             {
                 p.Price = price;
-                p.Stock = stock;
+                p.Quantity = quantity;
                 SaveInventory();
             }
         }
@@ -42,26 +48,36 @@ namespace PalengKart
                 Console.WriteLine("(no products)");
                 return;
             }
-            foreach (var p in Products)
+            foreach (var p in Products.OrderBy(p => p.Category).ThenBy(p => p.Name))
             {
-                Console.WriteLine(p.Barcode + " | " + p.Name + " | " + p.Category + " | ₱" + p.Price + " | Stock: " + p.Stock);
+                p.DisplayProduct();
             }
         }
 
-        public bool SellProduct(string barcode, int qty, out decimal total)
+        public Product? GetProduct(string productID)
         {
-            total = 0;
-            if (qty <= 0) return false;
+            return Products.FirstOrDefault(p => p.ProductID == productID);
+        }
 
-            var p = GetProduct(barcode);
-            if (p != null && p.Stock >= qty)
-            {
-                p.Stock -= qty;
-                total = p.Price * qty;
-                SaveInventory();
-                return true;
-            }
-            return false;
+        public bool ProductExists(string productID)
+        {
+            return GetProduct(productID) != null;
+        }
+
+        // Takes quantity out of stock; returns false if there isn't enough
+        public bool ReduceStock(string productID, int quantity)
+        {
+            var p = GetProduct(productID);
+            if (p == null || quantity <= 0 || p.Quantity < quantity) return false;
+
+            p.Quantity -= quantity;
+            SaveInventory();
+            return true;
+        }
+
+        public List<Product> GetLowStock()
+        {
+            return Products.Where(p => p.IsLowStock).ToList();
         }
 
         public void SaveInventory()
@@ -72,11 +88,12 @@ namespace PalengKart
                 {
                     // Invariant culture so the file loads the same on any PC regional setting
                     w.WriteLine(string.Join("|",
-                        Clean(p.Barcode),
+                        Clean(p.ProductID),
                         Clean(p.Name),
-                        Clean(p.Category),
+                        p.Category,
                         p.Price.ToString(CultureInfo.InvariantCulture),
-                        p.Stock.ToString(CultureInfo.InvariantCulture),
+                        p.Quantity.ToString(CultureInfo.InvariantCulture),
+                        Clean(p.Unit),
                         p.MinStock.ToString(CultureInfo.InvariantCulture)));
                 }
             }
@@ -94,33 +111,19 @@ namespace PalengKart
                 if (string.IsNullOrWhiteSpace(line)) continue;
 
                 var parts = line.Split('|');
-                if (parts.Length >= 6
+                if (parts.Length >= 7
+                    && Enum.TryParse(parts[2], out Category category)
                     && decimal.TryParse(parts[3], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal price)
-                    && int.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out int stock)
-                    && int.TryParse(parts[5], NumberStyles.Integer, CultureInfo.InvariantCulture, out int minStock))
+                    && int.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out int quantity)
+                    && int.TryParse(parts[6], NumberStyles.Integer, CultureInfo.InvariantCulture, out int minStock))
                 {
-                    Products.Add(new Product(parts[0], parts[1], parts[2], price, stock, minStock));
+                    Products.Add(new Product(parts[0], parts[1], category, price, quantity, parts[5], minStock));
                 }
                 else
                 {
                     Console.WriteLine($"Warning: skipped invalid line {lineNo} in {filePath}");
                 }
             }
-        }
-
-        public Product? GetProduct(string barcode)
-        {
-            return Products.FirstOrDefault(p => p.Barcode == barcode);
-        }
-
-        public bool BarcodeExists(string barcode)
-        {
-            return GetProduct(barcode) != null;
-        }
-
-        public List<Product> GetLowStock()
-        {
-            return Products.Where(p => p.IsLowStock).ToList();
         }
 
         // '|' is the field separator in the save file, so it can't appear inside a value
