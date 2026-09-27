@@ -1,6 +1,6 @@
 # PalengKart Store System
 
-A console inventory and point-of-sale system for a small store, written in C# (.NET 9).
+A console inventory and point-of-sale system for a small store, written in C# (.NET 10).
 
 ## Features
 
@@ -12,7 +12,7 @@ A console inventory and point-of-sale system for a small store, written in C# (.
 
 ## Requirements
 
-- .NET 9 SDK
+- .NET 10 SDK
 
 ## Run
 
