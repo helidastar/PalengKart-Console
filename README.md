@@ -53,6 +53,86 @@ Customer accounts and sales are kept in memory and reset when the program closes
 | `SalesReport.cs` | List of all sales and the report |
 | `BarcodeGenerator.cs` | EAN-13 barcode generation and display |
 
+## Class diagram
+
+```mermaid
+classDiagram
+    class User {
+        <<abstract>>
+        +string Username
+        +string Email
+        +DisplayInfo()*
+    }
+    class Admin {
+        +DisplayInfo()
+    }
+    class Customer {
+        +string Password
+        +ShoppingCart Cart
+        +DisplayInfo()
+    }
+    class Product {
+        +string ProductID
+        +string Name
+        +Category Category
+        +decimal Price
+        +int Quantity
+        +string Unit
+        +int MinStock
+        +DisplayProduct()
+        +IsValidUnit(unit)$ bool
+    }
+    class Category {
+        <<enumeration>>
+        Fruit
+        Vegetables
+        Dairy
+        MeatAndFish
+        CansAndJars
+        PastaRiceCereals
+        SaucesCondiments
+        HerbsAndSpices
+        Snacks
+        Drinks
+        HouseholdAndCleaning
+        PersonalCare
+    }
+    class Inventory {
+        +List~Product~ Products
+        +AddProduct(p)
+        +UpdateProduct(id, price, quantity)
+        +RemoveProduct(id)
+        +DisplayInventory()
+    }
+    class ShoppingCart {
+        +List~Product~ Products
+        +AddToCart(product, quantity)
+        +CalculateTotal() decimal
+        +DisplayCart()
+    }
+    class Sale {
+        +int SaleID
+        +string CustomerUsername
+        +string ProductName
+        +int Quantity
+        +decimal TotalAmount
+        +DateTime Date
+    }
+    class SalesReport {
+        +List~Sale~ Sales
+        +RecordSale(...)
+        +DisplaySalesReport()
+    }
+
+    User <|-- Admin
+    User <|-- Customer
+    Customer *-- ShoppingCart
+    ShoppingCart o-- Product
+    Inventory o-- Product
+    Product --> Category
+    SalesReport o-- Sale
+```
+
 <div align="center">
 
 **CPE261 Object Oriented Programming 1 · 2024** · Instructor: Engr. Julian M. Semblante
