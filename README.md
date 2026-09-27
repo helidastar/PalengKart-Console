@@ -53,6 +53,18 @@ Customer accounts and sales are kept in memory and reset when the program closes
 | `SalesReport.cs` | List of all sales and the report |
 | `BarcodeGenerator.cs` | EAN-13 barcode generation and display |
 
+## Branches
+
+| Branch | What it is |
+|---|---|
+| `main` | Stable, checked version of the project |
+| `development` | Finished features are collected here, then merged into `main` by pull request |
+| `feat/<area>` | Work in progress (for example `feat/models`, `feat/menu`, `feat/docs`), merged into `development` by pull request |
+
+Each commit adds one thing and builds on its own. Commit messages are one line: `type(area): what changed`, for example `feat(cart): add ShoppingCart`. Types are `feat`, `fix`, `docs`, `ci` and `chore`.
+
+Every push and pull request to `main` or `development` is built by GitHub Actions.
+
 ## Class diagram
 
 ```mermaid
