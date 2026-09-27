@@ -11,6 +11,8 @@ A store system where the admin manages products and stock, and customers shop wi
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
 [![Build](https://github.com/helidastar/PalengKart-Console/actions/workflows/dotnet.yml/badge.svg)](https://github.com/helidastar/PalengKart-Console/actions/workflows/dotnet.yml)
 
+[![Download for Windows](https://img.shields.io/badge/Download_for_Windows-PalengKart.exe-0078D4?style=for-the-badge)](https://github.com/helidastar/PalengKart-Console/releases/latest/download/PalengKart.exe)
+
 **[Read the Full Documentation](docs/DOCUMENTATION.md)**
 
 </div>
@@ -43,7 +45,9 @@ C# · .NET 10 · console application · GitHub Actions
 
 ## Getting Started
 
-Requires the **[.NET 10 SDK](https://dotnet.microsoft.com/download)**.
+**Just want to use it?** Download [PalengKart.exe](https://github.com/helidastar/PalengKart-Console/releases/latest/download/PalengKart.exe) (Windows 10/11, 64-bit, no .NET needed), put it in its own folder and double-click it. If Windows shows "Windows protected your PC", click **More info** → **Run anyway**. All versions are on the [Releases](https://github.com/helidastar/PalengKart-Console/releases) page.
+
+**Running from source** requires the **[.NET 10 SDK](https://dotnet.microsoft.com/download)**:
 
 ```bash
 dotnet run
