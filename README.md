@@ -1,149 +1,70 @@
-# PalengKart Store System
+<div align="center">
 
-A console inventory and point-of-sale system for a small store, written in C# (.NET 10).
+# PalengKart
 
-## Features
+**Console Inventory and Point-of-Sale System for a Small Store**
 
-**Admin**
-- View, add, update and remove products
-- Low stock alerts based on each product's minimum stock
-- Sales report of every checkout
+A store system where the admin manages products and stock, and customers shop with a cart and check out. Every sale is recorded, and the admin is warned when a product runs low.
 
-**Customer**
-- Create an account and log in with a password
-- Browse products, add them to a shopping cart and check out
+![Status](https://img.shields.io/badge/status-complete-brightgreen)
+![C#](https://img.shields.io/badge/C%23-239120?logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+[![Build](https://github.com/helidastar/PalengKart-Console/actions/workflows/dotnet.yml/badge.svg)](https://github.com/helidastar/PalengKart-Console/actions/workflows/dotnet.yml)
 
-**Store**
-- 12 product categories (Fruit, Vegetables, Dairy, and more) and units (kg, pc, bottle, and more)
-- Auto-generated EAN-13 product IDs (with check digit), shown as a simple ASCII barcode
-- Inventory saved to `inventory.txt` after every change
+**[Read the Full Documentation](docs/DOCUMENTATION.md)**
 
-## Requirements
+</div>
 
-- .NET 10 SDK
+---
 
-## Run
+## About
+
+Small stores and market stalls often track stock on paper, so it is hard to know what is running low, what was sold, and how much was earned.
+
+**PalengKart** keeps one list of products with their category, price, quantity and unit. Customers build a cart and check out, stock goes down automatically, and every sale is recorded for the admin's sales report. It is built around a class diagram that uses abstraction, inheritance and polymorphism (`User` → `Admin` / `Customer`).
+
+## Key Features
+
+- **Admin Menu** — add, update and remove products, view the inventory
+- **Customer Accounts** — create an account and log in with a password
+- **Shopping Cart** — add products, see the total, and check out
+- **Sales Report** — every sale with date, customer, product and amount
+- **Low Stock Alerts** — products at or below their minimum stock
+- **Barcodes** — auto-generated EAN-13 product IDs, shown as an ASCII barcode
+- **Saved Inventory** — stored in `inventory.txt` after every change
+
+## Tech Stack
+
+C# · .NET 10 · console application · GitHub Actions
+
+## Project Status
+
+**Complete.** All classes from the class diagram are built, and the admin and customer menus work end to end. Tested with a full customer and admin session; see [Testing](docs/DOCUMENTATION.md#9-testing).
+
+## Getting Started
+
+Requires the **[.NET 10 SDK](https://dotnet.microsoft.com/download)**.
 
 ```bash
 dotnet run
 ```
 
-On first run, five sample products are added.
-
 | Login | How |
 |---|---|
 | Admin | Username `admin` |
-| Customer | Any new username creates an account (email and password) |
+| Customer | Any new username creates an account |
 
-Customer accounts and sales are kept in memory and reset when the program closes. Only the inventory is saved.
+## Documentation
 
-## Project structure
+> **The complete project documentation is in [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md).**
+>
+> It covers the user flow, every menu option, the class diagram and the OOP concepts used, the save file format, setup, testing, known limitations, and the branch and commit rules.
 
-| File | Description |
-|---|---|
-| `Program.cs` | Main menu, admin menu and customer menu |
-| `User.cs` | Abstract base class for all users |
-| `Admin.cs` | Admin user (inherits `User`) |
-| `Customer.cs` | Customer user with a password and a shopping cart (inherits `User`) |
-| `Product.cs` | Product with ID, category, price, quantity and unit |
-| `Category.cs` | Product categories |
-| `Inventory.cs` | Product list, stock changes, and saving/loading `inventory.txt` |
-| `ShoppingCart.cs` | Customer's cart and total |
-| `Sale.cs` | One sold item |
-| `SalesReport.cs` | List of all sales and the report |
-| `BarcodeGenerator.cs` | EAN-13 barcode generation and display |
+## Contributors
 
-## Branches
-
-| Branch | What it is |
-|---|---|
-| `main` | Stable, checked version of the project |
-| `development` | Finished features are collected here, then merged into `main` by pull request |
-| `feat/<area>` | Work in progress (for example `feat/models`, `feat/menu`, `feat/docs`), merged into `development` by pull request |
-
-Each commit adds one thing and builds on its own. Commit messages are one line: `type(area): what changed`, for example `feat(cart): add ShoppingCart`. Types are `feat`, `fix`, `docs`, `ci` and `chore`.
-
-Every push and pull request to `main` or `development` is built by GitHub Actions.
-
-## Class diagram
-
-```mermaid
-classDiagram
-    class User {
-        <<abstract>>
-        +string Username
-        +string Email
-        +DisplayInfo()*
-    }
-    class Admin {
-        +DisplayInfo()
-    }
-    class Customer {
-        +string Password
-        +ShoppingCart Cart
-        +DisplayInfo()
-    }
-    class Product {
-        +string ProductID
-        +string Name
-        +Category Category
-        +decimal Price
-        +int Quantity
-        +string Unit
-        +int MinStock
-        +DisplayProduct()
-        +IsValidUnit(unit)$ bool
-    }
-    class Category {
-        <<enumeration>>
-        Fruit
-        Vegetables
-        Dairy
-        MeatAndFish
-        CansAndJars
-        PastaRiceCereals
-        SaucesCondiments
-        HerbsAndSpices
-        Snacks
-        Drinks
-        HouseholdAndCleaning
-        PersonalCare
-    }
-    class Inventory {
-        +List~Product~ Products
-        +AddProduct(p)
-        +UpdateProduct(id, price, quantity)
-        +RemoveProduct(id)
-        +DisplayInventory()
-    }
-    class ShoppingCart {
-        +List~Product~ Products
-        +AddToCart(product, quantity)
-        +CalculateTotal() decimal
-        +DisplayCart()
-    }
-    class Sale {
-        +int SaleID
-        +string CustomerUsername
-        +string ProductName
-        +int Quantity
-        +decimal TotalAmount
-        +DateTime Date
-    }
-    class SalesReport {
-        +List~Sale~ Sales
-        +RecordSale(...)
-        +DisplaySalesReport()
-    }
-
-    User <|-- Admin
-    User <|-- Customer
-    Customer *-- ShoppingCart
-    ShoppingCart o-- Product
-    Inventory o-- Product
-    Product --> Category
-    SalesReport o-- Sale
-```
+| Name | GitHub |
+|------|--------|
+| Charity T. Ricabo | [@helidastar](https://github.com/helidastar) |
 
 <div align="center">
 
